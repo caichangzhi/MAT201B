@@ -55,7 +55,7 @@ struct AlloApp : App {
     rng.seed(42);
     auto rc = [&]() { return HSV(rng.uniform(), 1.0f, 1.0f); };
     auto rv = [&](float scale) -> Vec3f {
-      return Vec3f(rng.uniformS(), 0.0f, rng.uniformS()) * scale;
+      return Vec3f(rng.uniformS(), 0.0f, 0.99f) * scale;
     };
 
     // set the mass of Sun

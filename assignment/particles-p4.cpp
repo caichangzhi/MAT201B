@@ -31,6 +31,8 @@ struct AlloApp : App {
   vector<Vec3f> acceleration;
   vector<float> mass;
 
+  // design a binary star system and adjust the ratio of the mass 
+  // of the other planet to the sun through GUI
   void onCreate() override {
     gui << pointSize << timeStep << gravConst << dragFactor << maxAccel 
     << symmetry << ratio;
@@ -60,7 +62,7 @@ struct AlloApp : App {
     rng.seed(42);
     auto rc = [&]() { return HSV(rng.uniform(), 1.0f, 1.0f); };
     auto rv = [&](float scale) -> Vec3f {
-      return Vec3f(rng.uniformS(), 0.0f, rng.uniformS()) * scale;
+      return Vec3f(rng.uniformS(), 0.0f, 0.99f) * scale;
     };
 
     // set the mass of Sun
