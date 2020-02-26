@@ -3,15 +3,18 @@
 #include "al/ui/al_ControlGUI.hpp"
 #include "al_ext/statedistribution/al_CuttleboneStateSimulationDomain.hpp"
 #include "al/graphics/al_Font.hpp"
+#include "al/io/al_Imgui.hpp"
+#include "al/sound/al_SoundFile.hpp"
 
 using namespace al;
 
+#include <iostream>
 #include <fstream>
 #include <vector>
 using namespace std;
 
-const int birdsN = 100;
-const int predatorsN = 100;
+const int birdsN = 10;
+const int predatorsN = 10;
 
 Vec3f rv(float scale = 1.0f) {
   return Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS()) * scale;
@@ -55,6 +58,9 @@ struct SharedState{
 
 //TODO: Make another control GUI to control predators' moverate (not necessary)
 class MyApp : public DistributedAppWithState<SharedState> {
+  SoundFilePlayerTS playerTS;
+  std::vector<float> buffer;
+  bool loop = true;
   Font font;
   Parameter moveRate{"/moveRate", "", 1.0, "", 0.0, 2.0};
   Parameter turnRate{"/turnRate", "", 1.0, "", 0.0, 2.0};
@@ -72,10 +78,22 @@ class MyApp : public DistributedAppWithState<SharedState> {
   Mesh predatorsMesh;
   Mesh text;
 
-  // vector<Birds> birds;
-  // vector<Predators> predators;
+  void onInit() override {
+    const char name[] = "data/fly.wav";
+    if (!playerTS.open(name)) {
+      std::cerr << "File not found: " << name << std::endl;
+      quit();
+    }
+    std::cout << "sampleRate: " << playerTS.soundFile.sampleRate << std::endl;
+    std::cout << "channels: " << playerTS.soundFile.channels << std::endl;
+    std::cout << "frameCount: " << playerTS.soundFile.frameCount << std::endl;
+    playerTS.setLoop();
+    playerTS.setPlay();
+  }
 
   void onCreate() override {
+    imguiInit();
+
     font.load("data/VeraMono.ttf", 28, 1024);
     font.alignCenter();
     // font.write(text, "hello font", 0.2f);
@@ -151,6 +169,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
       for (unsigned j = 0; j < birdsN; j++){
         float distance = (predators[i].pos() - birds[j].pos()).mag();
         if(distance < 0.1){
+          dt = turnRate;
           //TODO: erase the birds which is eaten and generate new one
           //TODO: make the predator rotate several times to notify it find birds
 
@@ -158,6 +177,9 @@ class MyApp : public DistributedAppWithState<SharedState> {
           //TODO: add the specific number of which predator eat which bird
           //e.g. "predator 3 are eating bird 80"
         }
+        // else{
+        // font.write(text, "Predators are searching birds", 0.2f);
+        // }
       }
     }
 
@@ -226,7 +248,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
 
   void onDraw(Graphics& g) override {
     g.clear(0.1, 0.1, 0.1);
-    gl::depthTest(true); 
+    gl::depthTesting(true); 
     gl::blending(true); 
     gl::blendTrans(); 
     g.shader(birdsShader);
@@ -244,10 +266,31 @@ class MyApp : public DistributedAppWithState<SharedState> {
       gui.draw(g);
     }
   }
+
+  //TODO: when predators eat birds, play 'eat.wav', other time play 'fly.wav'
+  void onSound(AudioIOData& io) override {
+    int frames = (int)io.framesPerBuffer();
+    int channels = playerTS.soundFile.channels;
+    int bufferLength = frames * channels;
+    if ((int)buffer.size() < bufferLength) {
+      buffer.resize(bufferLength);
+    }
+    playerTS.getFrames(frames, buffer.data(), (int)buffer.size());
+    int second = (channels < 2) ? 0 : 1;
+    while (io()) {
+      int frame = (int)io.frame();
+      int idx = frame * channels;
+      io.out(0) = buffer[idx];
+      io.out(1) = buffer[idx + second];
+    }
+  }
+
+  void onExit() override { imguiShutdown(); }
 };
 
 int main() {
   MyApp app;
+  app.configureAudio(44100, 512, 2, 0);
   app.start();
 }
 
