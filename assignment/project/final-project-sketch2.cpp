@@ -441,7 +441,8 @@ struct AlloApp : App {
       for(unsigned j = 0; j < birdsN; j++){
         float distance = (predators[i].pos() - birds[j].pos()).mag();
         if(distance < 0.1){
-          birds[j].pos() = Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS());
+          // birds[j].pos() = Vec3f(rnd::uniformS(), rnd::uniformS(), rnd::uniformS());
+          // erase birds[j]
           text.write(textMesh, "Predators are earing birds", 0.08f);
           play_fly = !play_fly;
         }
@@ -531,9 +532,11 @@ struct AlloApp : App {
 
     g.shader(insectShader);
     g.shader().uniform("pointSize", pointSize / 100);
+    //g.draw(insectMesh);
 
     g.shader(pestShader);
     g.shader().uniform("pointSize", pointSize / 100);
+    //g.draw(pestMesh);
 
     g.shader(predatorsShader);
     g.shader().uniform("size", size * 0.03);
