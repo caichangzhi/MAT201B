@@ -1,3 +1,4 @@
+#include "al/app/al_DistributedApp.hpp"
 #include "al/app/al_App.hpp"
 #include "al/math/al_Random.hpp"
 #include "al/spatial/al_HashSpace.hpp"
