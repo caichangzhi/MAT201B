@@ -58,12 +58,32 @@ struct BirdsAttribute{
   Vec3f position;
   Vec3f forward;
   Vec3f up;
+
+  BirdsAttribute (Vec3f p, Vec3f f, Vec3f u){
+    position = p;
+    forward = f;
+    up = u;
+  }
 };
 
 struct PredatorsAttribute{
   Vec3f position;
   Vec3f forward;
   Vec3f up;
+
+  PredatorsAttribute (Vec3f p, Vec3f f, Vec3f u){
+    position = p;
+    forward = f;
+    up = u;
+  }
+};
+
+struct SharedState{
+  BirdsAttribute birds[birdsN];
+  PredatorsAttribute predators[predatorsN];
+  float size;
+  float ratio;
+  float background;
 };
 
 class MyApp : public DistributedAppWithState<SharedState> {
@@ -279,15 +299,15 @@ class MyApp : public DistributedAppWithState<SharedState> {
       predatorsSpace.move(i, predators[i].pos() * predatorsSpace.dim());
     }
   }
-  
+
   void visualizeBirds(){
     vector<Vec3f>& v(birdsMesh.vertices());
     vector<Vec3f>& n(birdsMesh.normals());
     vector<Color>& c(birdsMesh.colors());
     for (unsigned i = 0; i < birdsN; i++) {
-      v[i] = state().birds[i].pos();
-      n[i] = state().birds[i].uf();
-      const Vec3d& up(state().birds[i].uu());
+      v[i] = state().birds[i].position;
+      n[i] = state().birds[i].forward;
+      const Vec3d& up(state().birds[i].up;
       c[i].set(up.x, up.y, up.z);
     }
   }
@@ -297,9 +317,9 @@ class MyApp : public DistributedAppWithState<SharedState> {
     vector<Vec3f>& n(predatorsMesh.normals());
     vector<Color>& c(predatorsMesh.colors());
     for (unsigned i = 0; i < predatorsN; i++) {
-      v[i] = state().predators[i].pos();
-      n[i] = state().predators[i].uf();
-      const Vec3d& up(state().predators[i].uu());
+      v[i] = state().predators[i].position;
+      n[i] = state().predators[i].forward;
+      const Vec3d& up(state().predators[i].up;
       c[i].set(up.x, up.y, up.z);
     }
   }
@@ -364,6 +384,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
 
       dispelBirds();
       eatBirds();
+
       } 
       else { }
 
