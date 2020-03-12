@@ -58,24 +58,12 @@ struct BirdsAttribute{
   Vec3f position;
   Vec3f forward;
   Vec3f up;
-
-  BirdsAttribute (Vec3f p, Vec3f f, Vec3f u){
-    position = p;
-    forward = f;
-    up = u;
-  }
 };
 
 struct PredatorsAttribute{
   Vec3f position;
   Vec3f forward;
   Vec3f up;
-
-  PredatorsAttribute (Vec3f p, Vec3f f, Vec3f u){
-    position = p;
-    forward = f;
-    up = u;
-  }
 };
 
 struct SharedState{
@@ -300,6 +288,30 @@ class MyApp : public DistributedAppWithState<SharedState> {
     }
   }
 
+  void birdsDistribute(){
+    for (unsigned i = 0; i < birdsN; i++) { 
+        BirdsAttribute b;
+        b.position = birds[i].pos();
+        b.forward = birds[i].uf();
+        b.up = birds[i].uu();
+        state().birds[i] = b;
+      }
+      state().size = size.get();
+      state().ratio = ratio.get();
+  }
+
+  void predatorsDistribute(){
+    for (unsigned i = 0; i < predatorsN; i++) { 
+        PredatorsAttribute p;
+        p.position = predators[i].pos();
+        p.forward = predators[i].uf();
+        p.up = predators[i].uu();
+        state().predators[i] = p;
+      }
+      state().size = size.get();
+      state().ratio = ratio.get();
+  }
+
   void visualizeBirds(){
     vector<Vec3f>& v(birdsMesh.vertices());
     vector<Vec3f>& n(birdsMesh.normals());
@@ -307,7 +319,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
     for (unsigned i = 0; i < birdsN; i++) {
       v[i] = state().birds[i].position;
       n[i] = state().birds[i].forward;
-      const Vec3d& up(state().birds[i].up;
+      const Vec3d& up(state().birds[i].up);
       c[i].set(up.x, up.y, up.z);
     }
   }
@@ -319,7 +331,7 @@ class MyApp : public DistributedAppWithState<SharedState> {
     for (unsigned i = 0; i < predatorsN; i++) {
       v[i] = state().predators[i].position;
       n[i] = state().predators[i].forward;
-      const Vec3d& up(state().predators[i].up;
+      const Vec3d& up(state().predators[i].up);
       c[i].set(up.x, up.y, up.z);
     }
   }
@@ -385,7 +397,10 @@ class MyApp : public DistributedAppWithState<SharedState> {
       dispelBirds();
       eatBirds();
 
+      birdsDistribute();
+      predatorsDistribute();
       } 
+      
       else { }
 
       visualizeBirds();
